@@ -1,7 +1,7 @@
 package db
 
 import (
-	storage "_entryTask/internal/user"
+	storage "_entryTask/internal/storage"
 	"_entryTask/pkg/logger"
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -28,9 +28,13 @@ func (db *DB) FindAll(ctx context.Context) (data []string, err error) {
 	return nil, nil
 }
 
-func (db *DB) FindByDate(ctx context.Context) (data []string, err error) {
+func (db *DB) FindFirst(ctx context.Context) (data []string, err error) {
 	//TODO Implement me!
 	return nil, nil
+}
+
+func (db *DB) AddNewRequest(ctx context.Context) {
+	
 }
 
 func NewStorage(pool *pgxpool.Pool) storage.Storage {

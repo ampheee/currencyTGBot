@@ -13,13 +13,13 @@ type Config struct {
 	CoinAPIToken string
 }
 
-func Load() Config {
+func GetConfig() Config {
 	log := logger.GetLogger()
 	err := godotenv.Load("../config/.env")
 	if err != nil {
 		log.Fatal().Err(err).Msg("Cant load your .env file/ Is he exist ?")
 	}
-	log.Info().Msg(".env file loaded")
+	log.Info().Msg(".env File loaded successfully")
 	dburl := os.Getenv("DBURL")
 	if dburl == "" {
 		log.Fatal().Err(errs.NoDBURL)
@@ -28,14 +28,11 @@ func Load() Config {
 	if tgbottoken == "" {
 		log.Fatal().Err(errs.NoTGToken)
 	}
-	coinapikey := os.Getenv("COINAPIKEY")
-	if coinapikey == "" {
+	coinapitoken := os.Getenv("COINAPIKEY")
+	if coinapitoken == "" {
 		log.Fatal().Err(errs.NoCoinAPIKey)
 	}
-	log.Info().Msg(".env parsed")
-	return Config{
-		DBURL:        dburl,
-		TGBotToken:   tgbottoken,
-		CoinAPIToken: coinapikey,
-	}
+	log.Info().Msg(".env Parsed")
+	log.Info().Msg("Config loaded successfully")
+	return Config{DBURL: dburl, CoinAPIToken: coinapitoken, TGBotToken: tgbottoken}
 }
