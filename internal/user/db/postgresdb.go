@@ -4,13 +4,13 @@ import (
 	storage "_entryTask/internal/user"
 	"_entryTask/pkg/logger"
 	"context"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
 )
 
 type DB struct {
-	database *sqlx.DB
-	logger   zerolog.Logger
+	pool   *pgxpool.Pool
+	logger zerolog.Logger
 }
 
 func (db *DB) Create(ctx context.Context) (string, error) {
@@ -33,6 +33,6 @@ func (db *DB) FindByDate(ctx context.Context) (data []string, err error) {
 	return nil, nil
 }
 
-func NewStorage(database *sqlx.DB) storage.Storage {
-	return &DB{database: database, logger: logger.GetLogger()}
+func NewStorage(pool *pgxpool.Pool) storage.Storage {
+	return &DB{pool: pool, logger: logger.GetLogger()}
 }
