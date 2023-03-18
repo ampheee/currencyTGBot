@@ -12,6 +12,8 @@ import (
 	"github.com/mr-linch/go-tg"
 )
 
+import "C"
+
 var skipMigrations = flag.Bool("migration", false, "set value true, if migration needed")
 
 func main() {
