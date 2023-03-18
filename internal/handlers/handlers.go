@@ -27,12 +27,13 @@ func StartCommand(router *tgb.Router) {
 			msg.Update.ID, msg.Update.Chat().Username))
 		err := msg.Answer(
 			tg.HTML.Text(
-				tg.HTML.Line("It`s entry-task product"),
 				tg.HTML.Bold("\n 💸 I`m currency bot 💸"),
 				"",
 				tg.HTML.Italic("🚀 Powered by ampheee 🚀",
 					"\n",
-					tg.HTML.Underline(tg.HTML.Link("my tg", "github.com/ampheee")))),
+					tg.HTML.Underline(tg.HTML.Link("my github", "github.com/ampheee"))),
+				tg.HTML.Line("It`s entry-task product"),
+			),
 		).ParseMode(tg.HTML).DoVoid(ctx)
 		return err
 	}, tgb.Command("start", tgb.WithCommandIgnoreCase(true)))
@@ -69,6 +70,7 @@ func StatsCommand(router *tgb.Router, service service.UserService) {
 		botLogger.Info().Msg(fmt.Sprintf("[Stats] Fetched \"%s\" from [%d %v]", msg.Update.Message.Text,
 			msg.Update.ID, msg.Update.Chat().Username))
 		//TODO ParseUserStats
+
 		err := msg.Answer(
 			tg.HTML.Text(fmt.Sprintf("Your stats:\n"+
 				"Total requests: %d", 1))).
@@ -79,19 +81,19 @@ func StatsCommand(router *tgb.Router, service service.UserService) {
 
 func ExchangeCommand(router *tgb.Router, service service.UserService) {
 	botLogger := logger.GetLogger()
-	router.Message(func(ctx context.Context, msg *tgb.MessageUpdate) error {
+	router.Message(func(ctx context.Context, update *tgb.MessageUpdate) error {
 		botLogger.Info().Msg(fmt.Sprintf("[CurrencyInfo] Fetched \"%s\" from [%d %v]",
-			msg.Update.Message.Text,
-			msg.Update.ID,
-			msg.Update.Chat().Username),
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Update.Chat().Username),
 		)
 		//TODO GetCurrencyInfo
-		err := msg.Answer(
+		err := update.Answer(
 			tg.HTML.Text()).ParseMode(tg.HTML).DoVoid(ctx)
 		botLogger.Info().Msg(fmt.Sprintf("[CurrencyInfo] Done \"%s\" from [%d %v].",
-			msg.Update.Message.Text,
-			msg.Update.ID,
-			msg.Update.Chat().Username),
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Update.Chat().Username),
 		)
 		return err
 	}, tgb.Command("exchange", tgb.WithCommandIgnoreCase(true)))
@@ -99,21 +101,21 @@ func ExchangeCommand(router *tgb.Router, service service.UserService) {
 
 func CurrencyInfoCommand(router *tgb.Router, userService service.UserService) {
 	botLogger := logger.GetLogger()
-	router.Message(func(ctx context.Context, msg *tgb.MessageUpdate) error {
+	router.Message(func(ctx context.Context, update *tgb.MessageUpdate) error {
 		botLogger.Info().Msg(fmt.Sprintf("[Exchange] Fetched \"%s\" from [%d %v]",
-			msg.Update.Message.Text,
-			msg.Update.ID,
-			msg.Update.Chat().Username),
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Update.Chat().Username),
 		)
-		currency, currencyErr := userService.GetInfoAboutCurrency(ctx, msg.Update)
+		currency, currencyErr := userService.GetInfoAboutCurrency(ctx, update.Update)
 		var err error
 		if currencyErr == botErrors.CurrencyNotFound {
-			err = msg.Answer(
+			err = update.Answer(
 				tg.HTML.Text("No such currency:(\ntry another")).ParseMode(tg.HTML).DoVoid(ctx)
 		} else if currencyErr == botErrors.InvalidInput {
-			err = msg.Answer("Invalid command input. Check /help and try again\n").ParseMode(tg.HTML).DoVoid(ctx)
+			err = update.Answer("Invalid command input. Check /help and try again\n").ParseMode(tg.HTML).DoVoid(ctx)
 		} else {
-			err = msg.Answer(
+			err = update.Answer(
 				tg.HTML.Text("Currency info:",
 					tg.HTML.Code(fmt.Sprintf("IsCrypto: %b\nValute name: %s\nUSDPrice: %f\n"+
 						"Trade start date:%v\nTrade end date: %v",
@@ -121,32 +123,32 @@ func CurrencyInfoCommand(router *tgb.Router, userService service.UserService) {
 				ParseMode(tg.HTML).DoVoid(ctx)
 		}
 		botLogger.Info().Msg(fmt.Sprintf("[CurrencyInfo] Done \"%s\" from [%d %v].",
-			msg.Update.Message.Text,
-			msg.Update.ID,
-			msg.Update.Chat().Username))
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Update.Chat().Username))
 		return err
 	}, tgb.Command("currencyinfo", tgb.WithCommandIgnoreCase(true)))
 }
 
 func ClearStatsCommand(router *tgb.Router, service service.UserService) {
 	botLogger := logger.GetLogger()
-	router.Message(func(ctx context.Context, msg *tgb.MessageUpdate) error {
+	router.Message(func(ctx context.Context, update *tgb.MessageUpdate) error {
 		botLogger.Info().Msg(fmt.Sprintf("[Clear] Fetched \"%s\" from [%d %v]",
-			msg.Update.Message.Text,
-			msg.Update.ID,
-			msg.Update.Chat().Username),
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Update.Chat().Username),
 		)
-		isCleared := service.ClearStats(msg.Update.ID)
+		isCleared := service.ClearStats(ctx, update.Update.ID)
 		if isCleared {
 
 		} else {
 
 		}
-		err := msg.Answer(tg.HTML.Text("Done!")).ParseMode(tg.HTML).DoVoid(ctx)
+		err := update.Answer(tg.HTML.Text("Done!")).ParseMode(tg.HTML).DoVoid(ctx)
 		botLogger.Info().Msg(fmt.Sprintf("[Clear] Done \"%s\" from [%d %v].",
-			msg.Update.Message.Text,
-			msg.Update.ID,
-			msg.Update.Chat().Username),
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Update.Chat().Username),
 		)
 		return err
 	}, tgb.Command("clearstats", tgb.WithCommandIgnoreCase(true)))
@@ -154,10 +156,12 @@ func ClearStatsCommand(router *tgb.Router, service service.UserService) {
 
 func UnknownCommand(router *tgb.Router) {
 	botLogger := logger.GetLogger()
-	router.Message(func(ctx context.Context, msg *tgb.MessageUpdate) error {
-		botLogger.Warn().Msg(fmt.Sprintf("[Unknown] Fetched \"%s\" from [%d %v]", msg.Update.Message.Text,
-			msg.Update.ID, msg.Update.Chat().Username))
-		err := msg.Answer(
+	router.Message(func(ctx context.Context, update *tgb.MessageUpdate) error {
+		botLogger.Warn().Msg(fmt.Sprintf("[Unknown] Fetched \"%s\" from [%d %v]",
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Update.Chat().Username))
+		err := update.Answer(
 			tg.HTML.Text("Unknown command. Try another or /help")).
 			ParseMode(tg.HTML).DoVoid(ctx)
 		return err

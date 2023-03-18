@@ -4,7 +4,7 @@ import (
 	"_entryTask/config"
 	"_entryTask/internal/client"
 	service "_entryTask/internal/service/repository"
-	"_entryTask/internal/storage/db"
+	"_entryTask/internal/storage/repository"
 	"_entryTask/pkg/logger"
 	"_entryTask/pkg/postgresql"
 	"context"
@@ -23,7 +23,7 @@ func main() {
 	if *skipMigrations != false {
 		postgresql.MigrateDatabase(ctx, pool)
 	}
-	userStorage := db.NewStorage(pool)
+	userStorage := repository.NewStorage(pool)
 	userService := service.NewService(userStorage, Config)
 	tgBot := tg.New(Config.TGBotToken)
 	botLogger.Info().Msg("Bot was started!")

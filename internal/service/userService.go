@@ -7,9 +7,9 @@ import (
 )
 
 type UserService interface {
-	CreateUser()
+	CreateUser(ctx context.Context)
 	GetInfoAboutCurrency(ctx context.Context, update *tgb.Update) (currency *coin.Currency, err int)
-	ExchangeTwoCurrencies()
-	GetStats(id int, msg string)
-	ClearStats(id int) bool
+	ExchangeTwoCurrencies(ctx context.Context)
+	GetStats(ctx context.Context, id int, msg string)
+	ClearStats(ctx context.Context, id int) bool
 }

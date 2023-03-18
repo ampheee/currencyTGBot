@@ -31,7 +31,7 @@ func MigrateDatabase(ctx context.Context, pool *pgxpool.Pool) {
 	botLogger := logger.GetLogger()
 	conn, err := pool.Acquire(ctx)
 	if err != nil {
-		botLogger.Fatal().Err(err).Msg("Unable to acquire db connection")
+		botLogger.Fatal().Err(err).Msg("Unable to acquire repository connection")
 	}
 	migrator, err := migrate.NewMigrator(ctx, conn.Conn(), "public.table")
 	if err != nil {
@@ -50,5 +50,5 @@ func MigrateDatabase(ctx context.Context, pool *pgxpool.Pool) {
 		botLogger.Fatal().Err(err).Msg("Unable to get current schema version")
 	}
 	botLogger.Info().Msg(fmt.Sprintf("Migration Done. Current schema version: %v", ver))
-	defer conn.Release()
+	conn.Release()
 }
