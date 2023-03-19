@@ -1,0 +1,26 @@
+#dockerfile && docker-compose skipped.
+
+
+#version: "3.7"
+#services:
+#  tgbot:
+#    restart: unless-stopped
+#    build:
+#      dockerfile: Dockerfile
+#      context: .
+#    env_file:
+#      - .env
+#    depends_on:
+#      - database
+#    networks:
+#      - default
+#    tty: true
+#
+#
+#  db:
+#    image: postgres:latest
+#    environment:
+#      POSTGRES_PASSWORD: 12345
+#    ports:
+#      - "5432:5432"
+#    restart: unless-stopped

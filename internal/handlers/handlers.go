@@ -53,10 +53,16 @@ func StatsCommand(router *tgb.Router, service service.UserService) {
 			update.Message.From.ID,
 			update.Message.From.Username))
 		data := service.GetStats(ctx, update.Update)
-		err := update.Answer(
-			tg.HTML.Bold(fmt.Sprintf(" Total requests: %d\n", len(data)), "Your commands:\n",
-				tg.HTML.Code(service.GetStats(ctx, update.Update)...))).
-			ParseMode(tg.HTML).DoVoid(ctx)
+		var err error
+		if len(data) == 0 {
+			err = update.Answer(tg.HTML.Bold("You have not made any request yet :(")).ParseMode(tg.HTML).DoVoid(ctx)
+		} else {
+			err = update.Answer(
+				tg.HTML.Bold(fmt.Sprintf(" Total requests: %d\n", len(data)),
+					"First request: ", tg.HTML.Code(data[0]),
+					"All requests:\n", tg.HTML.Code(data...))).
+				ParseMode(tg.HTML).DoVoid(ctx)
+		}
 		return err
 	}, tgb.Command("stats"))
 }
@@ -64,7 +70,7 @@ func StatsCommand(router *tgb.Router, service service.UserService) {
 func CurrencyInfoCommand(router *tgb.Router, userService service.UserService) {
 	botLogger := logger.GetLogger()
 	router.Message(func(ctx context.Context, update *tgb.MessageUpdate) error {
-		botLogger.Info().Msg(fmt.Sprintf("[Exchange] Fetched \"%s\" from [%d %v]",
+		botLogger.Info().Msg(fmt.Sprintf("[Currency] Fetched \"%s\" from [%d %v]",
 			update.Update.Message.Text,
 			update.Message.From.ID,
 			update.Message.From.Username),
@@ -87,7 +93,7 @@ func CurrencyInfoCommand(router *tgb.Router, userService service.UserService) {
 		botLogger.Info().Msg(fmt.Sprintf("[CurrencyInfo] Done \"%s\" from [%d %v].",
 			update.Update.Message.Text,
 			update.Message.From.ID,
-			update.Update.Chat().Username))
+			update.Message.From.Username))
 		return err
 	}, tgb.Command("currencyinfo", tgb.WithCommandIgnoreCase(true)))
 }
@@ -124,6 +130,10 @@ func UnknownCommand(router *tgb.Router) {
 		err := update.Answer(
 			tg.HTML.Text("Unknown command. Try another or /help")).
 			ParseMode(tg.HTML).DoVoid(ctx)
+		botLogger.Info().Msg(fmt.Sprintf("[Unknown] Done \"%s\" from [%d %v].",
+			update.Update.Message.Text,
+			update.Message.From.ID,
+			update.Message.From.Username))
 		return err
 	})
 }

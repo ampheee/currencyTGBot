@@ -1,38 +1,45 @@
 package config
 
 import (
-	errs "_entryTask/pkg/constants/errs"
 	"_entryTask/pkg/logger"
-	"github.com/joho/godotenv"
-	"os"
+	"github.com/spf13/viper"
 )
 
 type Config struct {
-	DBURL        string
-	TGBotToken   string
-	CoinAPIToken string
+	Postgres struct {
+		User     *string `json:"user"`
+		Password *string `json:"password"`
+		Host     *string `json:"host"`
+		Port     *string `json:"port"`
+		DbName   *string `json:"dbname"`
+	} `json:"postgres"`
+	Tokens struct {
+		TgToken   *string `json:"tgtoken"`
+		CoinToken *string `json:"cointoken"`
+	} `json:"tokens"`
 }
 
-func GetConfig() Config {
+func LoadConfig() *viper.Viper {
 	log := logger.GetLogger()
-	err := godotenv.Load("../config/.env")
+	v := viper.New()
+	v.AddConfigPath("../config")
+	v.SetConfigName("config")
+	v.SetConfigType("yml")
+	err := v.ReadInConfig()
 	if err != nil {
-		log.Fatal().Err(err).Msg("Cant load your .env file/ Is he exist ?")
+		log.Fatal().Err(err).Msg("unable to read config")
 	}
-	log.Info().Msg(".env File loaded successfully")
-	dburl := os.Getenv("DBURL")
-	if dburl == "" {
-		log.Fatal().Err(errs.NoDBURL)
-	}
-	tgbottoken := os.Getenv("TGBOTTOKEN")
-	if tgbottoken == "" {
-		log.Fatal().Err(errs.NoTGToken)
-	}
-	coinapitoken := os.Getenv("COINAPIKEY")
-	if coinapitoken == "" {
-		log.Fatal().Err(errs.NoCoinAPIKey)
-	}
-	log.Info().Msg(".env Parsed")
 	log.Info().Msg("Config loaded successfully")
-	return Config{DBURL: dburl, CoinAPIToken: coinapitoken, TGBotToken: tgbottoken}
+	return v
+}
+
+func ParseConfig(v *viper.Viper) *Config {
+	log := logger.GetLogger()
+	var c Config
+	err := v.Unmarshal(&c)
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to decode config into struct")
+	}
+	log.Info().Msg("Config parsed successfully")
+	return &c
 }

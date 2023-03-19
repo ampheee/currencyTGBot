@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/mr-linch/go-tg"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 )
 
 type DB struct {
@@ -94,7 +93,7 @@ func (db *DB) DeleteUserStatsById(ctx context.Context, userId tg.UserID) error {
 	return nil
 }
 
-func (db *DB) FindAllRequestsById(ctx context.Context, request storage.RequestRecord) ([]string, error) {
+func (db *DB) FindAllRequestsById(ctx context.Context, userId tg.UserID) ([]string, error) {
 	conn, err := db.pool.Acquire(ctx)
 	if err != nil {
 		db.logger.Warn().Err(err).Msg("[dbFindAllUserStats] Unable to acquire a db conn")
@@ -103,7 +102,7 @@ func (db *DB) FindAllRequestsById(ctx context.Context, request storage.RequestRe
 	defer conn.Release()
 	qCheck := `SELECT EXISTS(SELECT u_id FROM users WHERE u_id = ($1))`
 	var found bool
-	err = conn.QueryRow(ctx, qCheck, request.User.Id).Scan(&found)
+	err = conn.QueryRow(ctx, qCheck, userId).Scan(&found)
 	if err != nil {
 		db.logger.Warn().Err(err).Msg("[dbFindAllUserStats] Unable to found user")
 	}
@@ -112,7 +111,7 @@ func (db *DB) FindAllRequestsById(ctx context.Context, request storage.RequestRe
 		db.logger.Info().Msg("[dbFindAllUserStats] User found")
 		q := `SELECT r.r_id, r.r_type, r.r_time, COALESCE(NULLIF(r.r_args, ''), 'no args')
 			FROM users u JOIN requests r ON u.u_id = r.u_id WHERE u.u_id =($1)`
-		rows, err := conn.Query(ctx, q, request.User.Id)
+		rows, err := conn.Query(ctx, q, userId)
 		if err != nil {
 			db.logger.Warn().Err(err)
 		} else {
@@ -129,32 +128,8 @@ func (db *DB) FindAllRequestsById(ctx context.Context, request storage.RequestRe
 	} else {
 		db.logger.Warn().Msg("[dbFindAllUserStats] User not found :(")
 	}
-	if err := db.AddNewRequest(ctx, request); err != nil {
-		log.Warn().Err(err).Msg("[dbFindAllUserStats] Can`t add new request")
-	}
+	conn.Release()
 	return records, nil
-}
-
-func (db *DB) FindFirstRequest(ctx context.Context, userId tg.UserID) (string, error) {
-	//	conn, err := db.pool.Acquire(ctx)
-	//	if err != nil {
-	//		db.logger.Warn().Err(err).Msg("[dbDeleteUserStats] Unable to acquire a db conn")
-	//		return "", err
-	//	}
-	//	defer conn.Release()
-	//	qCheck := `SELECT EXISTS(SELECT u_id FROM users WHERE u_id = ($1))`
-	//	var found bool
-	//	//err = conn.QueryRow(ctx, qCheck, userId).Scan(&found)
-	//	//if err != nil {
-	//	//	db.logger.Warn().Err(err).Msg("[dbDeleteUserStats] Unable to found user")
-	//	//	return "", err
-	//	//}
-	//	//if found {
-	//	//	db.logger.Info().Msg("[dbFindAllUserStats] User found")
-	//	//	q := `SELECT r.r_id, r.r_type, r.r_time, COALESCE(NULLIF(r.r_args, ''), 'no args')
-	//	//		FROM users u JOIN requests r ON u.u_id = r.u_id WHERE u.u_id =($1)`
-	//	//}
-	return "", nil
 }
 
 func NewStorage(pool *pgxpool.Pool) storage.Storage {

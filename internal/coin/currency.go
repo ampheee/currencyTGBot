@@ -11,7 +11,7 @@ func GetCurrencyInfo(config config.Config, coin string) *Currency {
 	var currency []Currency
 	botLogger := logger.GetLogger()
 	resp, err := resty.R().
-		SetHeader("X-CoinAPI-key", config.CoinAPIToken).
+		SetHeader("X-CoinAPI-key", *config.Tokens.CoinToken).
 		Get("https://rest.coinapi.io/v1/assets/" + coin)
 	if err != nil {
 		botLogger.Fatal().Msg("Cant get request from api")

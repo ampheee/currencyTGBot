@@ -26,15 +26,14 @@ func (s *Service) SendHelp(ctx context.Context, update *tgb.Update) string {
 	str := tg.HTML.Text(
 		tg.HTML.Bold("All existing commands:\n"),
 		tg.HTML.Code(
-			fmt.Sprintf("%s: %s\n%s: %s\n%s:%s\n%s: %s\n%s: %s",
+			fmt.Sprintf("%s: %s\n%s: %s\n%s:%s\n%s: %s\n",
 				"\t/start", tg.HTML.Bold("calling greetings with credits"),
 				"\t/stats", tg.HTML.Bold("shows your statistic for all time"),
-				"\t/exchange", tg.HTML.Bold("exchanges one currency into another"),
 				"\t/currencyInfo", tg.HTML.Bold("get entered currency info from coinAPI"),
-				"\t/clearstats", tg.HTML.Bold("clear all your stats\n"),
+				"\t/clearstats", tg.HTML.Bold("clear all your stats"),
 			)),
 		tg.HTML.Bold("Example usage:"),
-		tg.HTML.Code("\t/exchange BTC USD\n\t/currencyinfo BTC"))
+		tg.HTML.Code("\t/stats\n\t/currencyinfo BTC\n\t/stats"))
 	err := s.storage.AddNewRequest(ctx, storage.RequestRecord{User: storage.User{
 		Id:        update.Message.From.ID,
 		Username:  update.Message.From.Username,
@@ -73,12 +72,16 @@ func (s *Service) GetStats(ctx context.Context, update *tgb.Update) []string {
 			FirstName: update.Message.From.FirstName,
 			LastName:  update.Message.From.LastName,
 		},
-		RequestType: update.Message.Text,
+		RequestType: "/stats",
 		RequestTime: time.Unix(int64(update.Message.Date), 0),
 	}
-	data, err := s.storage.FindAllRequestsById(ctx, request)
+	data, err := s.storage.FindAllRequestsById(ctx, request.User.Id)
 	if err != nil {
 		s.botLogger.Warn().Err(err).Msg("[serviceGetStats] Can`t get stats")
+	}
+	dbErr := s.storage.AddNewRequest(ctx, request)
+	if dbErr != nil {
+		s.botLogger.Warn().Err(dbErr)
 	}
 	return data
 }

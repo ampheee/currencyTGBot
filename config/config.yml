@@ -1,0 +1,9 @@
+Postgres:
+  user: "implement me"
+  password: "implement me"
+  host: "implement me"
+  port: "implement me"
+  dbname: "implement me"
+Tokens:
+  tgtoken: "implement me"
+  cointoken: "implement me"

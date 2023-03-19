@@ -17,7 +17,13 @@ func GetPool(config config.Config, ctx context.Context) (pool *pgxpool.Pool) {
 		ctx, cancel := context.WithTimeout(ctx, time.Second*3)
 		defer cancel()
 		var err error
-		pool, err = pgxpool.Connect(ctx, config.DBURL)
+		pool, err = pgxpool.Connect(ctx, fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?%s",
+			*config.Postgres.User,
+			*config.Postgres.Password,
+			*config.Postgres.Host,
+			*config.Postgres.Port,
+			*config.Postgres.DbName,
+			"sslmode=disable&pool_max_conns=10"))
 		return err
 	}, 3, time.Second*3)
 	if err != nil {
@@ -33,7 +39,7 @@ func MigrateDatabase(ctx context.Context, pool *pgxpool.Pool) {
 	if err != nil {
 		botLogger.Fatal().Err(err).Msg("Unable to acquire repository connection")
 	}
-	migrator, err := migrate.NewMigrator(ctx, conn.Conn(), "public.table")
+	migrator, err := migrate.NewMigrator(ctx, conn.Conn(), "public.version")
 	if err != nil {
 		botLogger.Fatal().Err(err).Msg("Unable to create migration")
 	}

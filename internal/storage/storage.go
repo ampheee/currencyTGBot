@@ -7,8 +7,7 @@ import (
 
 type Storage interface {
 	CreateUser(ctx context.Context, user User) error
-	FindAllRequestsById(ctx context.Context, request RequestRecord) ([]string, error)
-	FindFirstRequest(ctx context.Context, userId tg.UserID) (string, error)
+	FindAllRequestsById(ctx context.Context, userId tg.UserID) ([]string, error)
 	DeleteUserStatsById(ctx context.Context, userId tg.UserID) error
 	AddNewRequest(ctx context.Context, record RequestRecord) error
 }

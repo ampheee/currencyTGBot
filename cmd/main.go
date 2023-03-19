@@ -12,22 +12,21 @@ import (
 	"github.com/mr-linch/go-tg"
 )
 
-import "C"
-
 var skipMigrations = flag.Bool("migration", false, "set value true, if migration needed")
 
 func main() {
 	flag.Parse()
 	ctx := context.Background()
-	Config := config.GetConfig()
+	v := config.LoadConfig()
+	config := config.ParseConfig(v)
 	botLogger := logger.GetLogger()
-	pool := postgresql.GetPool(Config, ctx)
+	pool := postgresql.GetPool(*config, ctx)
 	if *skipMigrations != false {
 		postgresql.MigrateDatabase(ctx, pool)
 	}
 	userStorage := repository.NewStorage(pool)
-	userService := service.NewService(userStorage, Config)
-	tgBot := tg.New(Config.TGBotToken)
+	userService := service.NewService(userStorage, *config)
+	tgBot := tg.New(*config.Tokens.TgToken)
 	botLogger.Info().Msg("Bot was started!")
 	botLogger.Fatal().Err(client.Run(ctx, tgBot, userService))
 }
